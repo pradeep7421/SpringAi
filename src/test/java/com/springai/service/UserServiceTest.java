@@ -1,5 +1,6 @@
 package com.springai.service;
 
+import com.springai.exception.DuplicateEmailException;
 import com.springai.exception.UserNotFoundException;
 import com.springai.model.User;
 import com.springai.repository.UserRepository;
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -90,6 +92,49 @@ class UserServiceTest {
         assertEquals("New", result.getName());
         assertEquals("new@example.com", result.getEmail());
         assertEquals("ADMIN", result.getRole());
+    }
+
+    @Test
+    void createUserThrowsWhenEmailTaken() {
+        User input = new User(null, "Fake Alice", "alice@example.com", "USER");
+        when(userRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(alice));
+
+        DuplicateEmailException ex = assertThrows(DuplicateEmailException.class, () -> userService.createUser(input));
+        assertEquals("Email already in use: alice@example.com", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void createUserWithNullEmailSkipsDuplicateCheck() {
+        User input = new User(null, "No Email", null, "USER");
+        when(userRepository.save(input)).thenReturn(input);
+
+        userService.createUser(input);
+
+        verify(userRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void updateUserAllowsKeepingOwnEmail() {
+        User existing = new User(1L, "Alice Smith", "alice@example.com", "ADMIN");
+        User changes = new User(null, "Alice Renamed", "alice@example.com", "ADMIN");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(userRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(existing));
+        when(userRepository.save(existing)).thenReturn(existing);
+
+        assertEquals("Alice Renamed", userService.updateUser(1L, changes).getName());
+    }
+
+    @Test
+    void updateUserThrowsWhenEmailBelongsToAnotherUser() {
+        User existing = new User(1L, "Alice Smith", "alice@example.com", "ADMIN");
+        User changes = new User(null, "Alice Smith", "bob@example.com", "ADMIN");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(userRepository.findByEmail("bob@example.com")).thenReturn(Optional.of(bob));
+
+        assertThrows(DuplicateEmailException.class, () -> userService.updateUser(1L, changes));
+        assertEquals("alice@example.com", existing.getEmail());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test

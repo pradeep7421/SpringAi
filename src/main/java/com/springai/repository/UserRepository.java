@@ -31,6 +31,18 @@ public class UserRepository {
         return Optional.ofNullable(store.get(id));
     }
 
+    public Optional<User> findByEmail(String email) {
+        if (email == null) {
+            return Optional.empty();
+        }
+        for (User user : store.values()) {
+            if (email.equalsIgnoreCase(user.getEmail())) {
+                return Optional.of(user);
+            }
+        }
+        return Optional.empty();
+    }
+
     public User save(User user) {
         if (user.getId() == null) {
             user.setId(idGenerator.incrementAndGet());

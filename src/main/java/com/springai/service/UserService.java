@@ -1,5 +1,6 @@
 package com.springai.service;
 
+import com.springai.exception.DuplicateEmailException;
 import com.springai.exception.UserNotFoundException;
 import com.springai.model.User;
 import com.springai.repository.UserRepository;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -31,11 +33,13 @@ public class UserService {
 
     public User createUser(User user) {
         user.setId(null);
+        ensureEmailAvailable(user.getEmail(), null);
         return userRepository.save(user);
     }
 
     public User updateUser(Long id, User user) {
         User existing = getUserById(id);
+        ensureEmailAvailable(user.getEmail(), id);
         existing.setName(user.getName());
         existing.setEmail(user.getEmail());
         existing.setRole(user.getRole());
@@ -57,5 +61,16 @@ public class UserService {
             }
         }
         return result;
+    }
+
+    // currentUserId is the user being updated (null on create), so keeping your own email is allowed.
+    private void ensureEmailAvailable(String email, Long currentUserId) {
+        if (email == null) {
+            return;
+        }
+        Optional<User> owner = userRepository.findByEmail(email);
+        if (owner.isPresent() && !owner.get().getId().equals(currentUserId)) {
+            throw new DuplicateEmailException(email);
+        }
     }
 }

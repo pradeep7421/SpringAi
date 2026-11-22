@@ -10,6 +10,12 @@
 - Run: `.\mvnw.cmd spring-boot:run` (port 8080)
 - Test: `.\mvnw.cmd test`
 
+## Change workflow
+- For any new requirement or bug, follow the `/dev-workflow` skill (`.github/skills/dev-workflow/SKILL.md`): approval gates, per-change docs in `docs/changes/`, learnings in `docs/Skills.md`
+- Never commit or push without explicit user approval
+- For a plain "commit and push" request: show `git status`/diff summary, run `.\mvnw.cmd test`, check staged files for `target/`, jars, zips, secrets, commit with `<type>: <summary>`, then ask before `git push` and verify `master...origin/master` is in sync
+- Never force push or use `--no-verify`
+
 ## Project structure (`com.springai`)
 - `model` - plain Java classes (e.g. `User`)
 - `repository` - in-memory repositories using `ConcurrentHashMap` (e.g. `UserRepository`, seeded with 3 users)

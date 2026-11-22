@@ -1,7 +1,7 @@
 # 001 - Plan
 
 **Branch:** `change/001-duplicate-email`
-**Status:** Done (task 7 pending stash restore)
+**Status:** Done
 
 ## Tasks
 - [x] 1. `exception/DuplicateEmailException.java` (new): `@ResponseStatus(HttpStatus.CONFLICT)`, message `Email already in use: <email>`. Proven by: `UserControllerTest.createUserReturns409WhenEmailExists`
@@ -13,7 +13,7 @@
   - `UserControllerTest`: POST -> 409, PUT -> 409
 - [x] 5. Compile and run full tests; coverage must stay 100%
 - [x] 6. `.github/copilot-instructions.md`: no change needed (no new endpoint, rule already covered by "Business rules ... duplicate checks: service layer")
-- [ ] 7. Smoke test: add `POST duplicate email -> 409` check after the stash is restored (script is stashed)
+- [x] 7. Smoke test: add `POST duplicate email -> 409` check after the stash is restored (script is stashed)
 
 ## Out of Scope
 - Input validation (blank/invalid email) - separate change

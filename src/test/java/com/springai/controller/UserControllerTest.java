@@ -1,5 +1,6 @@
 package com.springai.controller;
 
+import com.springai.exception.DuplicateEmailException;
 import com.springai.exception.UserNotFoundException;
 import com.springai.model.User;
 import com.springai.service.UserService;
@@ -84,6 +85,22 @@ class UserControllerTest {
         mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(USER_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(4));
+    }
+
+    @Test
+    void createUserReturns409WhenEmailExists() throws Exception {
+        when(userService.createUser(any(User.class))).thenThrow(new DuplicateEmailException("david@example.com"));
+
+        mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(USER_JSON))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void updateUserReturns409WhenEmailExists() throws Exception {
+        when(userService.updateUser(eq(1L), any(User.class))).thenThrow(new DuplicateEmailException("david@example.com"));
+
+        mockMvc.perform(put("/api/users/1").contentType(MediaType.APPLICATION_JSON).content(USER_JSON))
+                .andExpect(status().isConflict());
     }
 
     @Test

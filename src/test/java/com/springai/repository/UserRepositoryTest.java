@@ -47,6 +47,31 @@ class UserRepositoryTest {
     }
 
     @Test
+    void findByEmailIgnoresCase() {
+        Optional<User> user = repository.findByEmail("ALICE@example.com");
+
+        assertTrue(user.isPresent());
+        assertEquals(1L, user.get().getId());
+    }
+
+    @Test
+    void findByEmailReturnsEmptyWhenMissing() {
+        assertFalse(repository.findByEmail("nobody@example.com").isPresent());
+    }
+
+    @Test
+    void findByEmailReturnsEmptyForNullEmail() {
+        assertFalse(repository.findByEmail(null).isPresent());
+    }
+
+    @Test
+    void findByEmailSkipsUsersWithoutEmail() {
+        repository.save(new User(null, "No Email", null, "USER"));
+
+        assertEquals("Bob Johnson", repository.findByEmail("bob@example.com").get().getName());
+    }
+
+    @Test
     void saveAssignsNextIdToNewUser() {
         User saved = repository.save(new User(null, "David", "david@example.com", "USER"));
 
